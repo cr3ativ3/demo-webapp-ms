@@ -1,0 +1,24 @@
+apply plugin: 'com.bmuschko.tomcat'
+
+dependencies {
+	
+	def tomcatVersion = '7.+'
+    tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",
+           "org.apache.tomcat.embed:tomcat-embed-logging-juli:${tomcatVersion}",
+           "org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}"
+	
+}
+tomcat {
+    httpPort = 8090
+    httpsPort = 8091
+    enableSSL = false
+    contextPath = '/'
+    
+    users {
+        user {
+            username = 'user1'
+            password = 'pass1'
+            roles = ['developers', 'admin']
+        }
+    }
+}

@@ -1,0 +1,38 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'war'
+apply from: '/gradle/tomcat.gradle'
+
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+allprojects {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+dependencies {
+
+	compile 'org.springframework:spring-webmvc:4.3.11.RELEASE'
+	compile 'javax.servlet:jstl:1.2'
+	compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
+	compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
+	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.4'
+    
+    providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
+    
+    testCompile 'junit:junit:4.12'
+}
+
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.bmuschko:gradle-tomcat-plugin:2.4.2'
+    }
+}
