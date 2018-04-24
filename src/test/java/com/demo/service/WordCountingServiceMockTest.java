@@ -3,14 +3,17 @@ package com.demo.service;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
+
+import com.demo.data.UploadedFile;
 
 public class WordCountingServiceMockTest {
 
@@ -48,9 +51,9 @@ public class WordCountingServiceMockTest {
 
     public void countWordsAndAssert(int fileCount) throws IOException {
 
-        InputStream[] streams = new InputStream[fileCount];
+        List<UploadedFile> streams = new ArrayList<>();
         for (int i = 0; i < fileCount; i++) {
-            streams[i] = Files.newInputStream(Paths.get(FILE_PATH));
+            streams.add(new UploadedFile("file"+i, Files.newInputStream(Paths.get(FILE_PATH))));
         }
         Map<String, ? extends Number> result = testObject.countWords(streams);
 

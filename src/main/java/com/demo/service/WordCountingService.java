@@ -1,10 +1,12 @@
 package com.demo.service;
 
-import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
+
+import com.demo.data.UploadedFile;
 
 public interface WordCountingService {
 
-    Map<String, ? extends Number> countWords(InputStream... streams);
+    Map<String, ? extends Number> countWords(List<UploadedFile> uploadedFiles);
 
 }

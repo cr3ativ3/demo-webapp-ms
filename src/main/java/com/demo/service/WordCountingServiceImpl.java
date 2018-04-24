@@ -1,6 +1,7 @@
 package com.demo.service;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
@@ -17,21 +18,27 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.demo.data.UploadedFile;
+
 @Service
 public class WordCountingServiceImpl implements WordCountingService {
 
     private ExecutorService executor = Executors.newCachedThreadPool();
-
-    private static final Object mutex = new Object();
+    private static final Object MUTEX = new Object();
 
     @Override
-    public Map<String, ? extends Number> countWords(InputStream... files) {
+    public Map<String, ? extends Number> countWords(List<UploadedFile> uploadedFiles) {
 
         Map<String, BigInteger> wordCounts = Collections.synchronizedMap(new HashMap<>());
-        List<CompletableFuture<Void>> fileReaders = Arrays.stream(files).parallel()
-                .map(filePath -> CompletableFuture
-                        .supplyAsync(() -> tallyWordsFor(wordCounts, filePath), executor))
-                .collect(Collectors.toList());
+        List<CompletableFuture<?>> fileReaders = uploadedFiles.parallelStream()
+                .map(uf -> CompletableFuture.supplyAsync(() -> {
+                    try {
+                        tallyWordsFor(wordCounts, uf.getStream());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }, executor)).collect(Collectors.toList());
 
         try {
             CompletableFuture.allOf(fileReaders.toArray(new CompletableFuture<?>[0])).get();
@@ -41,24 +48,19 @@ public class WordCountingServiceImpl implements WordCountingService {
         return wordCounts;
     }
 
-    private Void tallyWordsFor(Map<String, BigInteger> wordCounts, InputStream stream) {
-        try {
-            new BufferedReader(new InputStreamReader(stream))
-                .lines().parallel()
+    private void tallyWordsFor(Map<String, BigInteger> wordCounts, InputStream stream)
+            throws IOException {
+        new BufferedReader(new InputStreamReader(stream)).lines().parallel()
                 .map(line -> line.split("\\s+"))
                 .flatMap(Arrays::stream)
                 .filter(w -> w.matches("\\w+"))
                 .map(String::toLowerCase)
                 .forEach(word -> {
-                    synchronized(mutex) {
+                    synchronized (MUTEX) {
                         BigInteger count = wordCounts.get(word);
-                        wordCounts.put(word, count == null ? BigInteger.ONE : count.add(BigInteger.ONE));
+                        wordCounts.put(word,
+                                count == null ? BigInteger.ONE : count.add(BigInteger.ONE));
                     }
                 });
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 }
