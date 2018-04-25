@@ -2,9 +2,9 @@ package com.demo.service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -26,7 +26,7 @@ public class FileProcessingServiceImpl implements FileProcessingService {
     private WordCountingService wordCountingService;
 
     @Override
-    public ProcessingDetails processFiles(MultipartFile[] uploadedFiles) {
+    public ProcessingDetails processFiles(List<MultipartFile> uploadedFiles) {
         ProcessingDetails details = new ProcessingDetails();
         Map<String, ? extends Number> sortedWords = readAllFiles(details, uploadedFiles)
                  .entrySet().stream()
@@ -42,12 +42,12 @@ public class FileProcessingServiceImpl implements FileProcessingService {
     }
 
     private LetterGroup chooseLetterGroup(Object obj) {
-        log.debug(obj.getClass());
+        log.info(obj.getClass());
         return null;
     }
 
-    private Map<String, ? extends Number> readAllFiles(ProcessingDetails details, MultipartFile[] uploadedFiles) {
-        return wordCountingService.countWords(Arrays.stream(uploadedFiles).map(file -> {
+    private Map<String, ? extends Number> readAllFiles(ProcessingDetails details, List<MultipartFile> uploadedFiles) {
+        return wordCountingService.countWords(uploadedFiles.stream().map(file -> {
             String name = file.getOriginalFilename();
             InputStream stream = null;
             try {

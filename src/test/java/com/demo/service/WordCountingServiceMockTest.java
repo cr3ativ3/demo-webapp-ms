@@ -29,23 +29,24 @@ public class WordCountingServiceMockTest {
 
     @Test
     public void singleFileWordCountTest() throws IOException {
-        for (int i=0; i < SINGLE_FILE_ITERATIONS; i++) {
+        for (int i = 0; i < SINGLE_FILE_ITERATIONS; i++) {
             System.out.print("Single file iteration: " + i);
             long start = Instant.now().toEpochMilli();
             countWordsAndAssert(1);
             long end = Instant.now().toEpochMilli();
-            System.out.println(String.format("\tCompleted in %d milliseconds", (end-start)));
+            System.out.println(String.format("\tCompleted in %d milliseconds", (end - start)));
         }
     }
 
     @Test
     public void multipleFileWordCountTest() throws IOException {
-        for (int i=0; i < MULTIPLE_FILE_ITERATIONS; i++) {
-            System.out.print(String.format("Multiple file (%s) iteration: %s", MULTIPLE_FILE_COUNT, i));
+        for (int i = 0; i < MULTIPLE_FILE_ITERATIONS; i++) {
+            System.out.print(
+                    String.format("Multiple file (%s) iteration: %s", MULTIPLE_FILE_COUNT, i));
             long start = Instant.now().toEpochMilli();
             countWordsAndAssert(MULTIPLE_FILE_COUNT);
             long end = Instant.now().toEpochMilli();
-            System.out.println(String.format("\tCompleted in %d milliseconds", (end-start)));
+            System.out.println(String.format("\tCompleted in %d milliseconds", (end - start)));
         }
     }
 
@@ -53,7 +54,7 @@ public class WordCountingServiceMockTest {
 
         List<UploadedFile> streams = new ArrayList<>();
         for (int i = 0; i < fileCount; i++) {
-            streams.add(new UploadedFile("file"+i, Files.newInputStream(Paths.get(FILE_PATH))));
+            streams.add(new UploadedFile("file" + i, Files.newInputStream(Paths.get(FILE_PATH))));
         }
         Map<String, ? extends Number> result = testObject.countWords(streams);
 
@@ -64,7 +65,8 @@ public class WordCountingServiceMockTest {
     }
 
     private BigInteger valueSum(Map<String, ? extends Number> result) {
-        return result.values().stream().map(freq -> new BigInteger(String.valueOf(freq.longValue())))
+        return result.values().stream()
+                .map(freq -> new BigInteger(String.valueOf(freq.longValue())))
                 .reduce(BigInteger.ZERO, BigInteger::add);
     }
 }

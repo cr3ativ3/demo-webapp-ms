@@ -3,8 +3,11 @@ package com.demo.controller;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,26 +26,34 @@ public class AppController {
     @Autowired
     FileProcessingService fileService;
 
-    @GetMapping("/")
-    public String homePage() {
-        log.debug("Show index page");
+    @GetMapping("/error")
+    public String errorPage() {
+        log.info("Show error-index page");
         return "index";
     }
 
-    @PostMapping("upload-files")
-    public String uploadFiles(@RequestParam("files") MultipartFile[] uploadedFiles, Model model) {
+    @GetMapping("/")
+    public String homePage() {
+        log.info("Show index page");
+        return "index";
+    }
 
-        log.debug(String.format("Files uploaded: %s", Arrays.stream(uploadedFiles)
+    @PostMapping(path = "/upload-files", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public String uploadFiles(@RequestParam("files") MultipartFile[] files , Model model, HttpServletRequest  request) {
+        log.info("Request: " + request.getContentLength());
+        log.info("Model:" + model.asMap());
+        log.info("Files:" + Arrays.asList(files));
+        log.info(String.format("Files uploaded: %s", Arrays.stream(files)
                 .map(f -> f.getOriginalFilename()).collect(Collectors.toList())));
 
-        ProcessingDetails details = fileService.processFiles(uploadedFiles);
+        ProcessingDetails details = fileService.processFiles(Arrays.asList(files));
         logMessages(details);
         model.addAttribute("details", details);
         return "fileDetails";
     }
 
     private void logMessages(ProcessingDetails details) {
-        if (details.getMessages().isEmpty()) {
+        if (!details.getMessages().isEmpty()) {
             log.debug("Files processed with warnings: " + details.getMessages());
         }
     }

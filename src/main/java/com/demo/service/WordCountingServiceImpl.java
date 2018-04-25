@@ -16,12 +16,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.demo.data.UploadedFile;
 
 @Service
 public class WordCountingServiceImpl implements WordCountingService {
+
+    private static final Logger log = Logger.getLogger(WordCountingServiceImpl.class);
 
     private ExecutorService executor = Executors.newCachedThreadPool();
     private static final Object MUTEX = new Object();
@@ -35,7 +38,7 @@ public class WordCountingServiceImpl implements WordCountingService {
                     try {
                         tallyWordsFor(wordCounts, uf.getStream());
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        log.error("Error while reading file", e);
                     }
                     return null;
                 }, executor)).collect(Collectors.toList());
