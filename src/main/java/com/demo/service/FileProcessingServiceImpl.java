@@ -1,11 +1,10 @@
 package com.demo.service;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -13,9 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.demo.data.LetterGroup;
-import com.demo.data.ProcessingDetails;
+import com.demo.data.Frequency;
+import com.demo.data.ProcessingResult;
 import com.demo.data.UploadedFile;
+import com.demo.data.Word;
 
 @Service
 public class FileProcessingServiceImpl implements FileProcessingService {
@@ -23,42 +23,33 @@ public class FileProcessingServiceImpl implements FileProcessingService {
     private static final Logger log = Logger.getLogger(FileProcessingServiceImpl.class);
 
     @Autowired
-    private WordCountingService wordCountingService;
+    private ReadingService wordCountingService;
 
     @Override
-    public ProcessingDetails processFiles(List<MultipartFile> uploadedFiles) {
-        ProcessingDetails details = new ProcessingDetails();
-        Map<String, ? extends Number> sortedWords = readAllFiles(details, uploadedFiles)
-                 .entrySet().stream()
-                 .sorted(Comparator.comparingLong(e -> e.getValue().longValue()))
-                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                         (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+    public ProcessingResult processFiles(List<MultipartFile> files) {
 
-        details.setSortedWords(sortedWords);
+        ProcessingResult result = new ProcessingResult();
+        List<String> errors = result.getMessages();
 
-        Map<LetterGroup, ?> groupedWords = sortedWords.entrySet().stream().collect(Collectors.groupingBy(this::chooseLetterGroup));
+        List<Word> allWords = wordCountingService.readAllWords(toUploadedFiles(files, errors),
+                ex -> errors.add(ex.getMessage()));
 
-        return details;
+        Map<Word, Frequency> frequencyMap = Frequency.countToMap(allWords);
+
+        result.setWordMap(new TreeMap<>(frequencyMap)); // add sorted
+        return result;
     }
 
-    private LetterGroup chooseLetterGroup(Object obj) {
-        log.info(obj.getClass());
-        return null;
-    }
-
-    private Map<String, ? extends Number> readAllFiles(ProcessingDetails details, List<MultipartFile> uploadedFiles) {
-        return wordCountingService.countWords(uploadedFiles.stream().map(file -> {
-            String name = file.getOriginalFilename();
-            InputStream stream = null;
+    private List<UploadedFile> toUploadedFiles(List<MultipartFile> files, List<String> errors) {
+        return files.stream().map(multipartFile -> {
+            UploadedFile uploadedFile = null;
             try {
-                stream = file.getInputStream();
+                uploadedFile = new UploadedFile(multipartFile.getOriginalFilename(), multipartFile.getInputStream());
             }
-            catch (IOException e) {
-                log.error("Faild to get input stream", e);
-                details.addMessage("Could not get stream for " + name);
-                stream = null;
+            catch (IOException ex) {
+                errors.add(ex.getMessage());
             }
-            return new UploadedFile(name, stream);
-        }).collect(Collectors.toList()));
+            return uploadedFile;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 }

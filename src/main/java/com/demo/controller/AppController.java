@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.demo.data.ProcessingDetails;
+import com.demo.data.ProcessingResult;
 import com.demo.service.FileProcessingService;
 
 @Controller
@@ -26,12 +26,6 @@ public class AppController {
     @Autowired
     FileProcessingService fileService;
 
-    @GetMapping("/error")
-    public String errorPage() {
-        log.info("Show error-index page");
-        return "index";
-    }
-
     @GetMapping("/")
     public String homePage() {
         log.info("Show index page");
@@ -40,19 +34,23 @@ public class AppController {
 
     @PostMapping(path = "/upload-files", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public String uploadFiles(@RequestParam("files") MultipartFile[] files , Model model, HttpServletRequest  request) {
-        log.info("Request: " + request.getContentLength());
-        log.info("Model:" + model.asMap());
-        log.info("Files:" + Arrays.asList(files));
-        log.info(String.format("Files uploaded: %s", Arrays.stream(files)
-                .map(f -> f.getOriginalFilename()).collect(Collectors.toList())));
 
-        ProcessingDetails details = fileService.processFiles(Arrays.asList(files));
+        logRequest(files, request);
+
+        ProcessingResult details = fileService.processFiles(Arrays.asList(files));
         logMessages(details);
+
         model.addAttribute("details", details);
         return "fileDetails";
     }
 
-    private void logMessages(ProcessingDetails details) {
+    private void logRequest(MultipartFile[] files, HttpServletRequest request) {
+        log.info("Request length: " + request.getContentLength());
+        log.info(String.format("Files uploaded: %s", Arrays.stream(files)
+                .map(f -> f.getOriginalFilename()).collect(Collectors.toList())));
+    }
+
+    private void logMessages(ProcessingResult details) {
         if (!details.getMessages().isEmpty()) {
             log.debug("Files processed with warnings: " + details.getMessages());
         }

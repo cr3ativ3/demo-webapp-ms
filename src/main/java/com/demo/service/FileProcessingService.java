@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.demo.data.ProcessingDetails;
+import com.demo.data.ProcessingResult;
 
 public interface FileProcessingService {
 
-    ProcessingDetails processFiles(List<MultipartFile> uploadedFiles);
+    ProcessingResult processFiles(List<MultipartFile> uploadedFiles);
 
 }

@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ProcessingDetails {
+public class ProcessingResult {
 
     private List<String> messages;
-    private Map<String, ? extends Number> sortedWords;
+    private Map<Word, Frequency> wordMap;
 
     public void addMessage(String msg) {
         getMessages().add(msg);
@@ -21,14 +21,14 @@ public class ProcessingDetails {
         return messages;
     }
 
-    public void setSortedWords(Map<String, ? extends Number> sortedWords) {
-        this.sortedWords = sortedWords;
+    public void setWordMap(Map<Word, Frequency> wordsAndFrequencies) {
+        this.wordMap = wordsAndFrequencies;
     }
 
-    public Map<String, ? extends Number> getSortedWords() {
-        if (sortedWords == null) {
+    public Map<Word, Frequency> getWordMap() {
+        if (wordMap == null) {
             return new HashMap<>();
         }
-        return sortedWords;
+        return wordMap;
     }
 }
