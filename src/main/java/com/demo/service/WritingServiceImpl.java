@@ -5,6 +5,7 @@ import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,6 +26,7 @@ import com.demo.data.WordGroup;
 @Service
 public class WritingServiceImpl implements WritingService {
 
+    private static final String ROOT_PATH = System.getProperty("user.dir");
     private static final Logger log = Logger.getLogger(WritingServiceImpl.class);
     private static final Object FILE_EXTENSION = ".txt";
 
@@ -39,12 +41,13 @@ public class WritingServiceImpl implements WritingService {
             log.debug(String.format("Finished grouping words into %s ", groupsAndSizes(groupedWords)));
         }
 
-        // Check for illegal words
-        if (groupedWords.containsKey(WordGroup.UNKNOWN)) {
-            handleUnknow(errorHandler, groupedWords);
-        }
         // Start writing in the background
-        writeByGroup(groupedWords, errorHandler);
+        for (Entry<WordGroup, Map<Word, Frequency>> groupEntry : groupedWords.entrySet()) {
+            CompletableFuture.supplyAsync(() -> {
+                writeFile(groupEntry, errorHandler);
+                return null;
+            }, executor);
+        }
         return groupedWords;
     }
 
@@ -61,33 +64,22 @@ public class WritingServiceImpl implements WritingService {
         return groupedWords;
     }
 
-    protected void writeByGroup(Map<WordGroup, Map<Word, Frequency>> groupedWords, Consumer<Throwable> handler) {
-        for (Entry<WordGroup, Map<Word, Frequency>> groupEntry : groupedWords.entrySet()) {
-            if (WordGroup.UNKNOWN == groupEntry.getKey()) {
-                continue;
-            }
-            CompletableFuture.supplyAsync(() -> {
-                writeFile(groupEntry, handler);
-                return null;
-            }, executor);
-        }
-    }
-
-    private void writeFile(Entry<WordGroup, Map<Word, Frequency>> groupEntry,
+    protected void writeFile(Entry<WordGroup, Map<Word, Frequency>> groupEntry,
             Consumer<Throwable> handler) {
+        WordGroup group = groupEntry.getKey();
         try {
-            File outputFile = getFileForGroup(groupEntry.getKey());
-            if (!outputFile.exists())
+            File outputFile = getFileForGroup(group);
+            if (!outputFile.exists()) {
                 outputFile.createNewFile();
-            Files.write(outputFile.toPath(), toByteArray(groupEntry.getValue()), WRITE, APPEND,
-                    CREATE);
+            }
+            Files.write(outputFile.toPath(), toByteArray(groupEntry.getValue()), WRITE, APPEND, CREATE);
         }
-        catch (Throwable t) {
+        catch (IOException ex) {
             String msg = "Error writing to file: %s";
-            log.error(String.format(msg, t.getMessage()), t);
-            handler.accept(new Throwable(String.format(msg, asFileName(groupEntry.getKey()))));
+            log.error(String.format(msg, ex.getMessage()), ex);
+            handler.accept(new Throwable(String.format(msg, asFileName(group)), ex));
         } finally {
-            log.debug("Finished writing to " + asFileName(groupEntry.getKey()));
+            log.debug("Finished writing to " + asFileName(group));
         }
     }
 
@@ -99,27 +91,19 @@ public class WritingServiceImpl implements WritingService {
     }
 
     private File getFileForGroup(WordGroup group) {
-        String path = new File(new StringBuilder(System.getProperty("user.dir"))
+        String path = new File(new StringBuilder(ROOT_PATH)
                 .append(File.separator).append("output").append(File.separator).append("files")
                 .append(File.separator).toString()).getAbsolutePath();
         File file = new File(path);
-        if (!file.exists())
+        if (!file.exists()) {
             file.mkdirs();
+        }
         return new File(file, asFileName(group));
     }
 
     private String asFileName(WordGroup group) {
         return new StringBuilder(group.name()).append(FILE_EXTENSION).toString();
     }
-
-    private void handleUnknow(Consumer<Throwable> handler,
-            Map<WordGroup, Map<Word, Frequency>> groupedWords) {
-        String errorMsg = String.format(
-                "Frequenvy map contains unknown words that will not be written: %s",
-                groupedWords.get(WordGroup.UNKNOWN));
-        log.error(errorMsg);
-        handler.accept(new Throwable(errorMsg));
-    };
 
     private Map<WordGroup, Integer> groupsAndSizes(Map<WordGroup, Map<Word, Frequency>> groupedWords) {
         return groupedWords.entrySet().stream()

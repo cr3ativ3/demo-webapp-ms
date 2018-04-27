@@ -52,10 +52,10 @@ public class ReadingServiceImpl implements ReadingService {
     private List<Word> readFile(UploadedFile file, Consumer<Throwable> errorHandler) {
         try {
             return readInputStream(file.getInputStream());
-        } catch (Throwable t) {
+        } catch (Exception ex) {
             String msg = "Error reading from file: %s";
-            log.error(String.format(msg, t.getMessage()), t);
-            errorHandler.accept(new Throwable(String.format(msg, file.getFileName())));
+            log.error(String.format(msg, ex.getMessage()), ex);
+            errorHandler.accept(new RuntimeException(String.format(msg, file.getFileName()), ex));
             return new ArrayList<Word>();
         } finally {
             log.debug("Finished reading file " + file.getFileName());

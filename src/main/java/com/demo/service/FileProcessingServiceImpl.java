@@ -1,8 +1,10 @@
 package com.demo.service;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -16,6 +18,7 @@ import com.demo.data.Frequency;
 import com.demo.data.ProcessingResult;
 import com.demo.data.UploadedFile;
 import com.demo.data.Word;
+import com.demo.data.WordGroup;
 
 @Service
 public class FileProcessingServiceImpl implements FileProcessingService {
@@ -40,8 +43,21 @@ public class FileProcessingServiceImpl implements FileProcessingService {
 
         Map<Word, Frequency> frequencyMap = Frequency.countToMap(allWords);
 
+        // Check for illegal words
+        Map<Word, Frequency> unknownWords = frequencyMap.entrySet().stream()
+                .filter(e -> e.getKey().getGroup() == WordGroup.UNKNOWN)
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+
+        if (!unknownWords.isEmpty()) {
+            handleUnknown(unknownWords.keySet(), errors);
+        }
+
         log.debug("Write word groups to files");
-        writingService.writeToFilesByGroup(frequencyMap, ex -> errors.add(ex.getMessage()));
+        Map<Word, Frequency> legalWords = frequencyMap.entrySet().stream()
+                .filter(e -> e.getKey().getGroup() != WordGroup.UNKNOWN)
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+
+        writingService.writeToFilesByGroup(legalWords, ex -> errors.add(ex.getMessage()));
 
         result.setWordMap(new TreeMap<>(frequencyMap)); // add sorted
         return result;
@@ -59,4 +75,11 @@ public class FileProcessingServiceImpl implements FileProcessingService {
             return uploadedFile;
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
+
+    protected void handleUnknown(Collection<Word> illegalWords, List<String> errors) {
+        String errorMsg = String.format(
+                "Frequency map contains illegal words that will not be written: %s", illegalWords);
+        log.error(errorMsg);
+        errors.add(errorMsg);
+    };
 }

@@ -5,7 +5,7 @@ Environment requirements:
 Instructions to run WebApp:
  - cmd to folder with this README.txt
  - run command: gradlew bootRun
- - navigate to: http://localhost:8080
+ - navigate to: http://localhost:8088
 
 Instructions to build WAR:
  - cmd to folder with this README.txt
