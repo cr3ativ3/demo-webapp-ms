@@ -4,9 +4,10 @@ import java.util.Map;
 
 import com.demo.data.Frequency;
 import com.demo.data.Word;
+import com.demo.data.WordGroup;
 
 public interface WritingService {
 
-    void writeGroupedToFiles(Map<Word, Frequency> wordsFrequencies);
+    Map<WordGroup, Map<Word, Frequency>> writeGroupedToFiles(Map<Word, Frequency> wordsFrequencies);
 
 }

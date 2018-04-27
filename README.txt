@@ -4,7 +4,8 @@ Environment requirements:
 
 Instructions to run WebApp:
  - cmd to folder with this README.txt
- - run command: gradlew tomcatRunWar
+ - run command: gradlew bootRun
+ - navigate to: http://localhost:8080
 
 Instructions to build WAR:
  - cmd to folder with this README.txt
@@ -12,9 +13,6 @@ Instructions to build WAR:
  - built war at: <root>/build/libs/
  
 Technologies used:
- - Spring-webmvc 4.3.11.RELEASE
- - AngularJS 1.5.5
- - Bootstrap 4
+ - Spring Boot
  - JDK 1.8
  - Gradle 3.1
- - Tomcat 7.x

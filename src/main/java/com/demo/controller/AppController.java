@@ -28,7 +28,7 @@ public class AppController {
 
     @GetMapping("/")
     public String homePage() {
-        log.info("Show index page");
+        log.debug("Showing index page");
         return "index";
     }
 
@@ -45,14 +45,14 @@ public class AppController {
     }
 
     private void logRequest(MultipartFile[] files, HttpServletRequest request) {
-        log.info("Request length: " + request.getContentLength());
-        log.info(String.format("Files uploaded: %s", Arrays.stream(files)
+        log.debug("Upload file(s) request length: " + request.getContentLength());
+        log.debug(String.format("Files uploaded: %s", Arrays.stream(files)
                 .map(f -> f.getOriginalFilename()).collect(Collectors.toList())));
     }
 
     private void logMessages(ProcessingResult details) {
-        if (!details.getMessages().isEmpty()) {
-            log.debug("Files processed with warnings: " + details.getMessages());
+        if (!details.getErrors().isEmpty()) {
+            log.debug("Files processed with warnings: " + details.getErrors());
         }
     }
 }

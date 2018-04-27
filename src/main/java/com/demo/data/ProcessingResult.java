@@ -7,18 +7,18 @@ import java.util.Map;
 
 public class ProcessingResult {
 
-    private List<String> messages;
+    private List<String> errors;
     private Map<Word, Frequency> wordMap;
 
-    public void addMessage(String msg) {
-        getMessages().add(msg);
+    public void addErrorMessage(String msg) {
+        getErrors().add(msg);
     }
 
-    public List<String> getMessages() {
-        if (messages == null) {
-            messages = new ArrayList<>();
+    public List<String> getErrors() {
+        if (errors == null) {
+            errors = new ArrayList<>();
         }
-        return messages;
+        return errors;
     }
 
     public void setWordMap(Map<Word, Frequency> wordsAndFrequencies) {

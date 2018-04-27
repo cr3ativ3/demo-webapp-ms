@@ -34,15 +34,17 @@ public class ReadingServiceImpl implements ReadingService {
 
         // Create futures that are reading from files
         List<CompletableFuture<List<Word>>> fileReaders = uploadedFiles.stream()
-                .map(file -> CompletableFuture
-                        .supplyAsync(() -> readInputStream(file.getInputStream()), getExecutor(uploadedFiles)))
+                .map(file -> CompletableFuture.supplyAsync(() -> {
+                        log.debug("Finished reading file " + file.getFileName());
+                        return readInputStream(file.getInputStream());
+                    }, getExecutor(uploadedFiles)))
                 .map(f -> f.handle(with(handler)))
                 .collect(Collectors.toList());
 
         // Merge words lists from all complete futures
         List<Word> words = CompletableFuture.allOf(fileReaders.toArray(new CompletableFuture[0]))
                 .thenApply(combined -> {
-                    log.info("Finished reading all files");
+                    log.debug("Finished reading all files");
                     return fileReaders.stream().flatMap(reader -> reader.join().stream())
                             .collect(Collectors.toList());
                 }).join(); // let's wait to finish
@@ -66,7 +68,6 @@ public class ReadingServiceImpl implements ReadingService {
 
     private BiFunction<List<Word>, Throwable, List<Word>> with(Consumer<Throwable> handler) {
         return (result, t) -> {
-            log.info("Reading process finished", t);
             if (t != null){
                 log.error("Error while reading from file", t);
                 handler.accept(t);

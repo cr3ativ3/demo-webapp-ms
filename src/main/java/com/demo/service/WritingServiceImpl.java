@@ -19,12 +19,14 @@ public class WritingServiceImpl implements WritingService {
     private Executor executor;
 
     @Override
-    public void writeGroupedToFiles(Map<Word, Frequency> wordsFrequencies) {
+    public Map<WordGroup, Map<Word, Frequency>> writeGroupedToFiles(Map<Word, Frequency> wordsFrequencies) {
         // TODO Auto-generated method stub
 
         Map<WordGroup, Map<Word, Frequency>> groupedWords = sortAndGroup(wordsFrequencies);
         // TODO split into groups
         // TODO trigger writing to files
+
+        return null;
     };
 
     private Map<WordGroup, Map<Word, Frequency>> sortAndGroup(Map<Word, Frequency> wordMap) {

@@ -51,19 +51,25 @@ public class WordCountingServiceMockTest {
 
     public void countWordsAndAssert(int fileCount) throws IOException {
 
-        List<UploadedFile> streams = new ArrayList<>();
-        for (int i = 0; i < fileCount; i++) {
-            streams.add(new UploadedFile("file" + i, Files.newInputStream(Paths.get(FILE_PATH))));
-        }
         long start = Instant.now().toEpochMilli();
-        List<Word> words = testObject.readAllWords(streams, RuntimeException::new);
+
+        List<Word> words = testObject.readAllWords(toUploadedFiles(fileCount), RuntimeException::new);
         Map<Word, Frequency> result = Frequency.countToMap(words);
+
         System.out.println(String.format("Completed in %d milliseconds", (Instant.now().toEpochMilli() - start)));
 
         assertEquals("Distinct words", EXPECTED_COUNT, result.keySet().size());
         assertEquals("Total words",
                 FREQUENCY_SUM.multiply(new BigInteger(String.valueOf(fileCount))),
                 valueSum(result));
+    }
+
+    private List<UploadedFile> toUploadedFiles(int fileCount) throws IOException {
+        List<UploadedFile> streams = new ArrayList<>();
+        for (int i = 0; i < fileCount; i++) {
+            streams.add(new UploadedFile("file" + i, Files.newInputStream(Paths.get(FILE_PATH))));
+        }
+        return streams;
     }
 
     private BigInteger valueSum(Map<Word, Frequency> result) {

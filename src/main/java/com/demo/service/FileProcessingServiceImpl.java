@@ -23,18 +23,25 @@ public class FileProcessingServiceImpl implements FileProcessingService {
     private static final Logger log = Logger.getLogger(FileProcessingServiceImpl.class);
 
     @Autowired
-    private ReadingService wordCountingService;
+    private ReadingService readingService;
+
+    @Autowired
+    private WritingService writingService;
 
     @Override
     public ProcessingResult processFiles(List<MultipartFile> files) {
 
         ProcessingResult result = new ProcessingResult();
-        List<String> errors = result.getMessages();
+        List<String> errors = result.getErrors();
 
-        List<Word> allWords = wordCountingService.readAllWords(toUploadedFiles(files, errors),
+        log.debug("Read words from files");
+        List<Word> allWords = readingService.readAllWords(toUploadedFiles(files, errors),
                 ex -> errors.add(ex.getMessage()));
 
         Map<Word, Frequency> frequencyMap = Frequency.countToMap(allWords);
+
+        log.debug("Write word groups to files");
+        writingService.writeGroupedToFiles(frequencyMap);
 
         result.setWordMap(new TreeMap<>(frequencyMap)); // add sorted
         return result;
