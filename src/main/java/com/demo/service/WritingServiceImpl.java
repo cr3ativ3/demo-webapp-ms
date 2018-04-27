@@ -1,7 +1,10 @@
 package com.demo.service;
 
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,18 +23,42 @@ public class WritingServiceImpl implements WritingService {
 
     @Override
     public Map<WordGroup, Map<Word, Frequency>> writeGroupedToFiles(Map<Word, Frequency> wordsFrequencies) {
-        // TODO Auto-generated method stub
 
         Map<WordGroup, Map<Word, Frequency>> groupedWords = sortAndGroup(wordsFrequencies);
-        // TODO split into groups
+        if (log.isDebugEnabled()){
+            log.debug(String.format("Finished grouping words into %s ", groupsAndSizes(groupedWords)));
+        }
+
+        // Check for illegal words
+        if (groupedWords.containsKey(WordGroup.UNKNOWN)) {
+            String errorMsg = String.format("Contains unknown words: %s",
+                    groupedWords.get(WordGroup.UNKNOWN));
+            log.error(errorMsg);
+            throw new IllegalArgumentException(errorMsg);
+        }
+
         // TODO trigger writing to files
 
-        return null;
+
+        return groupedWords;
     };
 
+    private Map<WordGroup, Integer> groupsAndSizes(Map<WordGroup, Map<Word, Frequency>> groupedWords) {
+        return groupedWords.entrySet().stream()
+                .collect(Collectors.toMap(Entry::getKey, v -> v.getValue().size()));
+    }
+
     private Map<WordGroup, Map<Word, Frequency>> sortAndGroup(Map<Word, Frequency> wordMap) {
-        // TODO Auto-generated method stub
-        return null;
+        Map<WordGroup, Map<Word, Frequency>> groupedWords = new TreeMap<>();
+        for(Entry<Word, Frequency> wordEntry : wordMap.entrySet()) {
+            Map<Word, Frequency> groupMap = groupedWords.get(wordEntry.getKey());
+            if (groupMap == null) {
+                groupMap = new TreeMap<>();
+                groupedWords.put(wordEntry.getKey().getGroup(), groupMap);
+            }
+            groupMap.put(wordEntry.getKey(), wordEntry.getValue());
+        }
+        return groupedWords;
     }
 
     @Autowired

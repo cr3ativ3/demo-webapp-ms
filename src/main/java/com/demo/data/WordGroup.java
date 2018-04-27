@@ -1,10 +1,12 @@
 package com.demo.data;
 
-public enum WordGroup {
+public enum WordGroup implements Comparable<WordGroup>{
 
-    A_Z('a', 'z'),
+    A_G('a', 'g'),
+    H_N('h', 'n'),
+    O_U('o', 'u'),
+    V_Z('v', 'z'),
     UNKNOWN;
-
 
     private char from;
     private char to;
@@ -29,7 +31,7 @@ public enum WordGroup {
         if (string == null || string.length() < 1) {
             return false;
         }
-        char first = string.toCharArray()[0];
+        char first = string.toLowerCase().toCharArray()[0];
         return from <= first && to >= first;
     }
 }

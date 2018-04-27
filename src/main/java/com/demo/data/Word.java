@@ -45,4 +45,9 @@ public class Word implements Comparable<Word> {
         return this == obj
                 || (obj != null && obj instanceof Word && this.text.equals(((Word)obj).getText()));
     }
+
+    @Override
+    public String toString() {
+        return this.text;
+    }
 }

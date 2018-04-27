@@ -34,7 +34,7 @@ public class FileProcessingServiceImpl implements FileProcessingService {
         ProcessingResult result = new ProcessingResult();
         List<String> errors = result.getErrors();
 
-        log.debug("Read words from files");
+        log.debug("Reading words from files");
         List<Word> allWords = readingService.readAllWords(toUploadedFiles(files, errors),
                 ex -> errors.add(ex.getMessage()));
 
