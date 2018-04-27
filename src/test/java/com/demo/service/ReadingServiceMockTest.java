@@ -12,29 +12,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import org.apache.log4j.Logger;
 import org.junit.Test;
 
 import com.demo.data.Frequency;
 import com.demo.data.UploadedFile;
 import com.demo.data.Word;
 
-public class WordCountingServiceMockTest {
+public class ReadingServiceMockTest {
+
+    private static final Logger log = Logger.getLogger(ReadingServiceMockTest.class);
 
     final long EXPECTED_COUNT = 9871;
     final BigInteger FREQUENCY_SUM = new BigInteger("667125");
 
     final String FILE_PATH = "src/test/resources/testbook.txt";
-    final int SINGLE_FILE_ITERATIONS = 5;
-    final int MULTIPLE_FILE_ITERATIONS = 1;
-    final int MULTIPLE_FILE_COUNT = 3;
+    final int SINGLE_FILE_ITERATIONS = 4;
+    final int MULTIPLE_FILE_ITERATIONS = 2;
+    final int MULTIPLE_FILE_COUNT = 2;
 
     ReadingServiceImpl testObject = new ReadingServiceImpl();
 
     @Test
     public void singleFileWordCountTest() throws IOException {
         for (int i = 0; i < SINGLE_FILE_ITERATIONS; i++) {
-            System.out.println(
-                    String.format("Single file iteration: %s/%s", i, SINGLE_FILE_ITERATIONS));
+            log.debug(String.format("Single file iteration: %s/%s", i, SINGLE_FILE_ITERATIONS));
             countWordsAndAssert(1);
         }
     }
@@ -43,7 +45,7 @@ public class WordCountingServiceMockTest {
     public void multipleFileWordCountTest() throws IOException {
         testObject.setExecutor(Executors.newCachedThreadPool());
         for (int i = 0; i < MULTIPLE_FILE_ITERATIONS; i++) {
-            System.out.println(String.format("Multiple file (%s) iteration: %s/%s",
+            log.debug(String.format("Multiple file (%s) iteration: %s/%s",
                     MULTIPLE_FILE_COUNT, i, MULTIPLE_FILE_ITERATIONS));
             countWordsAndAssert(MULTIPLE_FILE_COUNT);
         }
@@ -56,7 +58,7 @@ public class WordCountingServiceMockTest {
         List<Word> words = testObject.readAllWords(toUploadedFiles(fileCount), RuntimeException::new);
         Map<Word, Frequency> result = Frequency.countToMap(words);
 
-        System.out.println(String.format("Completed in %d milliseconds", (Instant.now().toEpochMilli() - start)));
+        log.debug(String.format("Completed in %d milliseconds", (Instant.now().toEpochMilli() - start)));
 
         assertEquals("Distinct words", EXPECTED_COUNT, result.keySet().size());
         assertEquals("Total words",
@@ -67,7 +69,8 @@ public class WordCountingServiceMockTest {
     private List<UploadedFile> toUploadedFiles(int fileCount) throws IOException {
         List<UploadedFile> streams = new ArrayList<>();
         for (int i = 0; i < fileCount; i++) {
-            streams.add(new UploadedFile("file" + i, Files.newInputStream(Paths.get(FILE_PATH))));
+            streams.add(new UploadedFile(String.format("testfile-%d.txt", i),
+                    Files.newInputStream(Paths.get(FILE_PATH))));
         }
         return streams;
     }

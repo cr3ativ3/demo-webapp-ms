@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -30,15 +29,12 @@ public class ReadingServiceImpl implements ReadingService {
     private Executor executor;
 
     @Override
-    public List<Word> readAllWords(List<UploadedFile> uploadedFiles, Consumer<Throwable> handler) {
+    public List<Word> readAllWords(List<UploadedFile> uploadedFiles, Consumer<Throwable> errorHandler) {
 
         // Create futures that are reading from files
         List<CompletableFuture<List<Word>>> fileReaders = uploadedFiles.stream()
-                .map(file -> CompletableFuture.supplyAsync(() -> {
-                        log.debug("Finished reading file " + file.getFileName());
-                        return readInputStream(file.getInputStream());
-                    }, getExecutor(uploadedFiles)))
-                .map(f -> f.handle(with(handler)))
+                .map(file -> CompletableFuture.supplyAsync(() -> readFile(file, errorHandler),
+                        getExecutor(uploadedFiles)))
                 .collect(Collectors.toList());
 
         // Merge words lists from all complete futures
@@ -46,9 +42,24 @@ public class ReadingServiceImpl implements ReadingService {
                 .thenApply(combined -> {
                     log.debug("Finished reading all files");
                     return fileReaders.stream().flatMap(reader -> reader.join().stream())
+                            .filter(Objects::nonNull)
                             .collect(Collectors.toList());
                 }).join(); // let's wait to finish
+
         return words;
+    }
+
+    private List<Word> readFile(UploadedFile file, Consumer<Throwable> errorHandler) {
+        try {
+            return readInputStream(file.getInputStream());
+        } catch (Throwable t) {
+            String msg = "Error reading from file: %s";
+            log.error(String.format(msg, t.getMessage()), t);
+            errorHandler.accept(new Throwable(String.format(msg, file.getFileName())));
+            return new ArrayList<Word>();
+        } finally {
+            log.debug("Finished reading file " + file.getFileName());
+        }
     }
 
     private List<Word> readInputStream(InputStream stream) {
@@ -64,16 +75,6 @@ public class ReadingServiceImpl implements ReadingService {
     private Executor getExecutor(List<UploadedFile> uploadedFiles) {
         // Avoid synchronizing for single file
         return (uploadedFiles.size() > 1 ? this.executor : task -> task.run());
-    }
-
-    private BiFunction<List<Word>, Throwable, List<Word>> with(Consumer<Throwable> handler) {
-        return (result, t) -> {
-            if (t != null){
-                log.error("Error while reading from file", t);
-                handler.accept(t);
-            }
-            return result == null ? new ArrayList<Word>() : result;
-        };
     }
 
     @Autowired

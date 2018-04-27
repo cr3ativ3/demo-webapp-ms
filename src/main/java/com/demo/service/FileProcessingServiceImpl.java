@@ -41,7 +41,7 @@ public class FileProcessingServiceImpl implements FileProcessingService {
         Map<Word, Frequency> frequencyMap = Frequency.countToMap(allWords);
 
         log.debug("Write word groups to files");
-        writingService.writeGroupedToFiles(frequencyMap);
+        writingService.writeToFilesByGroup(frequencyMap, ex -> errors.add(ex.getMessage()));
 
         result.setWordMap(new TreeMap<>(frequencyMap)); // add sorted
         return result;
