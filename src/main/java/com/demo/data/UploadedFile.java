@@ -2,6 +2,9 @@ package com.demo.data;
 
 import java.io.InputStream;
 
+/**
+ * Data class encapsulating an uploaded file.
+ */
 public class UploadedFile {
 
     private String fileName;

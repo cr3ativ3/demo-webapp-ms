@@ -2,6 +2,9 @@ package com.demo.data;
 
 import java.util.Objects;
 
+/**
+ * Object that encapsulates a letter word of an English language text.
+ */
 public class Word implements Comparable<Word> {
 
     private String original;

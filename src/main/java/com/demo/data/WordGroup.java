@@ -1,5 +1,8 @@
 package com.demo.data;
 
+/**
+ * An indicator of words group based on the word's first letter.
+ */
 public enum WordGroup implements Comparable<WordGroup>{
 
     A_G('a', 'g'),
@@ -18,6 +21,13 @@ public enum WordGroup implements Comparable<WordGroup>{
         this.to = to;
     }
 
+    /**
+     * Resolves to which group the words falls into. If none are matched the words group will be
+     * {@link WordGroup#UNKNOWN}.
+     *
+     * @param string the word
+     * @return the word's resolved group
+     */
     public static WordGroup resolve(String string) {
         for (WordGroup group : values()) {
             if (group.matches(string)) {

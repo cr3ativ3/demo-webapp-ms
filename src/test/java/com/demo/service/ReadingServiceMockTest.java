@@ -1,6 +1,8 @@
 package com.demo.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -49,6 +51,17 @@ public class ReadingServiceMockTest {
                     MULTIPLE_FILE_COUNT, i, MULTIPLE_FILE_ITERATIONS));
             countWordsAndAssert(MULTIPLE_FILE_COUNT);
         }
+    }
+
+    @Test
+    public void emptyOrNullFileTest() {
+        List<Word> result = testObject.readAllWords(null, RuntimeException::new);
+        assertNotNull("Should not be null", result);
+        assertTrue(result.isEmpty());
+
+        result = testObject.readAllWords(new ArrayList<>(), RuntimeException::new);
+        assertNotNull("Should not be null", result);
+        assertTrue(result.isEmpty());
     }
 
     public void countWordsAndAssert(int fileCount) throws IOException {

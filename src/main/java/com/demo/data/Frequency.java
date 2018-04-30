@@ -3,12 +3,15 @@ package com.demo.data;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collector;
 
+/**
+ * Class encapsulating count of an object in a collection.
+ */
 public class Frequency {
 
     public static final Frequency ZERO = new Frequency(0L);
@@ -28,7 +31,14 @@ public class Frequency {
         return String.valueOf(longValue());
     }
 
-    public static <T> Map<T, Frequency> countToMap(List<T> items) {
+    /**
+     * Counts items in a collection and returns a map of the items and their frequency.
+     *
+     * @param items the collection of items
+     * @return a map of objects and their frequency inside a collection
+     * @throws NullPointerException if the collection is null
+     */
+    public static <T> Map<T, Frequency> countToMap(Collection<T> items) {
         return items.stream().collect(groupingBy(Function.identity(), countingFrequency()));
     }
 

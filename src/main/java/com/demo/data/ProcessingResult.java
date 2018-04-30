@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Data transfer object containing file processing result for the application view.
+ */
 public class ProcessingResult {
 
     private List<String> errors;
@@ -14,6 +17,9 @@ public class ProcessingResult {
         getErrors().add(msg);
     }
 
+    /**
+     * @return the error message holder
+     */
     public List<String> getErrors() {
         if (errors == null) {
             errors = new ArrayList<>();
@@ -25,6 +31,9 @@ public class ProcessingResult {
         this.wordMap = wordsAndFrequencies;
     }
 
+    /**
+     * @return a map words and their frequency in the uploaded files
+     */
     public Map<Word, Frequency> getWordMap() {
         if (wordMap == null) {
             return new HashMap<>();

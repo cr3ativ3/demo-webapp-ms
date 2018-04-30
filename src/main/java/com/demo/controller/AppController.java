@@ -1,9 +1,8 @@
 package com.demo.controller;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,24 +17,40 @@ import org.springframework.web.multipart.MultipartFile;
 import com.demo.data.ProcessingResult;
 import com.demo.service.FileProcessingService;
 
+/**
+ * Main web application controller.
+ */
 @Controller
 public class AppController {
 
     private static final Logger log = Logger.getLogger(AppController.class);
 
+    /**
+     * Service responsible for uploaded file processing.
+     */
     @Autowired
-    FileProcessingService fileService;
+    private FileProcessingService fileService;
 
+    /**
+     * @return mapping for the home page.
+     */
     @GetMapping("/")
     public String homePage() {
         log.debug("Showing index page");
         return "index";
     }
 
+    /**
+     * Mapping for the uploaded file submission.
+     * @param files the uploaded files
+     * @param model the application view model
+     * @return mapping to file processing details page
+     */
     @PostMapping(path = "/upload-files", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public String uploadFiles(@RequestParam("files") MultipartFile[] files , Model model, HttpServletRequest  request) {
+    public String uploadFiles(@RequestParam("files") MultipartFile[] files , Model model) {
 
-        logRequest(files, request);
+        files = Optional.ofNullable(files).orElse(new MultipartFile[0]);
+        logRequest(files);
 
         ProcessingResult details = fileService.processFiles(Arrays.asList(files));
         logMessages(details);
@@ -44,8 +59,7 @@ public class AppController {
         return "fileDetails";
     }
 
-    private void logRequest(MultipartFile[] files, HttpServletRequest request) {
-        log.debug("Upload file(s) request length: " + request.getContentLength());
+    private void logRequest(MultipartFile[] files) {
         log.debug(String.format("Files uploaded: %s", Arrays.stream(files)
                 .map(f -> f.getOriginalFilename()).collect(Collectors.toList())));
     }

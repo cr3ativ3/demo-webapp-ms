@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -21,6 +22,9 @@ import org.springframework.stereotype.Service;
 import com.demo.data.UploadedFile;
 import com.demo.data.Word;
 
+/**
+ * Basic implementation of a {@link ReadingService}.
+ */
 @Service
 public class ReadingServiceImpl implements ReadingService {
 
@@ -32,7 +36,8 @@ public class ReadingServiceImpl implements ReadingService {
     public List<Word> readAllWords(List<UploadedFile> uploadedFiles, Consumer<Throwable> errorHandler) {
 
         // Create futures that are reading from files
-        List<CompletableFuture<List<Word>>> fileReaders = uploadedFiles.stream()
+        List<CompletableFuture<List<Word>>> fileReaders = Optional.ofNullable(uploadedFiles)
+                .orElse(new ArrayList<>()).stream()
                 .map(file -> CompletableFuture.supplyAsync(() -> readFile(file, errorHandler),
                         getExecutor(uploadedFiles)))
                 .collect(Collectors.toList());
@@ -44,7 +49,7 @@ public class ReadingServiceImpl implements ReadingService {
                     return fileReaders.stream().flatMap(reader -> reader.join().stream())
                             .filter(Objects::nonNull)
                             .collect(Collectors.toList());
-                }).join(); // let's wait to finish
+                }).join(); //wait to finish
 
         return words;
     }
@@ -73,10 +78,14 @@ public class ReadingServiceImpl implements ReadingService {
     }
 
     private Executor getExecutor(List<UploadedFile> uploadedFiles) {
-        // Avoid synchronizing for single file
+        // Avoid synchronization for a single file
         return (uploadedFiles.size() > 1 ? this.executor : task -> task.run());
     }
 
+    /**
+     * Sets the executor for background file reading.
+     * @param executor
+     */
     @Autowired
     public void setExecutor(Executor executor) {
         this.executor = executor;
