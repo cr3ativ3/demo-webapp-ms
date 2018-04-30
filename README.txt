@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/cr3ativ3/demo-webapp-ms.svg?branch=master)](https://travis-ci.org/cr3ativ3/demo-webapp-ms)
+
 Environment requirements:
  - JDK 1.8 installed
  - Internet connection (with access)
